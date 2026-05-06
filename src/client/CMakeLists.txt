@@ -141,6 +141,22 @@ set(MBTOOLS_SOURCES
 
 set(RESOURCES gui/client_rsc.qrc)
 
+if(APPLE)
+  set(MBTOOLS_MACOS_BUNDLE_DISPLAY_NAME "Modbus Client")
+  set(MBTOOLS_MACOS_BUNDLE_EXECUTABLE ${MBTOOLS_CLIENT_APP_NAME})
+  set(MBTOOLS_MACOS_BUNDLE_IDENTIFIER "io.github.serhmarch.ModbusTools.mbclient")
+  set(MBTOOLS_MACOS_BUNDLE_ICON "mbclient.icns")
+  set(MBTOOLS_MACOS_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/mbclient-Info.plist")
+  configure_file("${CMAKE_SOURCE_DIR}/src/macos/Info.plist.in"
+                 "${MBTOOLS_MACOS_INFO_PLIST}"
+                 @ONLY)
+
+  set(MBTOOLS_MACOS_ICON_FILE "${CMAKE_CURRENT_LIST_DIR}/gui/icons/${MBTOOLS_MACOS_BUNDLE_ICON}")
+  set_source_files_properties(${MBTOOLS_MACOS_ICON_FILE}
+                              PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+  set(RESOURCES ${RESOURCES} ${MBTOOLS_MACOS_ICON_FILE})
+endif()
+
 if(WIN32)
   set(MBTOOLS_WIN_RESOURCE_FILE win_resource.rc)
   message(STATUS "${PROJECT_NAME} resource file for Windows: '${MBTOOLS_WIN_RESOURCE_FILE}'")
@@ -174,6 +190,24 @@ set_target_properties(
   PROPERTIES VERSION ${PROJECT_VERSION}
              SOVERSION ${PROJECT_VERSION_MAJOR}
              WIN32_EXECUTABLE true)
+
+if(APPLE)
+  set_target_properties(
+    ${MBTOOLS_CLIENT_APP_NAME}
+    PROPERTIES
+      MACOSX_BUNDLE true
+      MACOSX_BUNDLE_INFO_PLIST "${MBTOOLS_MACOS_INFO_PLIST}"
+      MACOSX_BUNDLE_ICON_FILE "${MBTOOLS_MACOS_BUNDLE_ICON}")
+
+  add_custom_command(
+    TARGET ${MBTOOLS_CLIENT_APP_NAME}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_BUNDLE_DIR:${MBTOOLS_CLIENT_APP_NAME}>/Contents/Frameworks"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:${MBTOOLS_CORE_LIB_NAME}>" "$<TARGET_BUNDLE_DIR:${MBTOOLS_CLIENT_APP_NAME}>/Contents/Frameworks/lib${MBTOOLS_CORE_LIB_NAME}.${PROJECT_VERSION_MAJOR}.dylib"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:${MB_LIBRARY_NAME}>" "$<TARGET_BUNDLE_DIR:${MBTOOLS_CLIENT_APP_NAME}>/Contents/Frameworks/lib${MB_LIBRARY_NAME}.${PROJECT_VERSION_MAJOR}.dylib"
+    COMMENT "Copy ModbusTools libraries into macOS client bundle"
+  )
+endif()
 
 target_link_libraries(${MBTOOLS_CLIENT_APP_NAME} PRIVATE
                       Qt${QT_VERSION_MAJOR}::Core

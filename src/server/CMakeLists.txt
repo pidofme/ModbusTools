@@ -147,6 +147,22 @@ set(RESOURCES
     resource/server_resource.qrc           
 )     
 
+if (APPLE)
+    set(MBTOOLS_MACOS_BUNDLE_DISPLAY_NAME "Modbus Server")
+    set(MBTOOLS_MACOS_BUNDLE_EXECUTABLE ${MBTOOLS_SERVER_APP_NAME})
+    set(MBTOOLS_MACOS_BUNDLE_IDENTIFIER "io.github.serhmarch.ModbusTools.mbserver")
+    set(MBTOOLS_MACOS_BUNDLE_ICON "mbserver.icns")
+    set(MBTOOLS_MACOS_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/mbserver-Info.plist")
+    configure_file("${CMAKE_SOURCE_DIR}/src/macos/Info.plist.in"
+                   "${MBTOOLS_MACOS_INFO_PLIST}"
+                   @ONLY)
+
+    set(MBTOOLS_MACOS_ICON_FILE "${CMAKE_CURRENT_LIST_DIR}/gui/icons/${MBTOOLS_MACOS_BUNDLE_ICON}")
+    set_source_files_properties(${MBTOOLS_MACOS_ICON_FILE}
+                                PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    set(RESOURCES ${RESOURCES} ${MBTOOLS_MACOS_ICON_FILE})
+endif()
+
 if (WIN32)
     set(MBTOOLS_WIN_RESOURCE_FILE win_resource.rc)
     message(STATUS "${PROJECT_NAME} resource file for Windows: '${MBTOOLS_WIN_RESOURCE_FILE}'")
@@ -182,6 +198,28 @@ set_target_properties(
     SOVERSION ${PROJECT_VERSION_MAJOR}
     WIN32_EXECUTABLE true
 )
+
+if (APPLE)
+    set_target_properties(
+        ${MBTOOLS_SERVER_APP_NAME}
+        PROPERTIES
+        MACOSX_BUNDLE true
+        MACOSX_BUNDLE_INFO_PLIST "${MBTOOLS_MACOS_INFO_PLIST}"
+        MACOSX_BUNDLE_ICON_FILE "${MBTOOLS_MACOS_BUNDLE_ICON}"
+    )
+
+    file(GLOB MBTOOLS_SERVER_SCRIPT_FILES "${CMAKE_CURRENT_LIST_DIR}/python/*.py")
+    add_custom_command(
+        TARGET ${MBTOOLS_SERVER_APP_NAME}
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_BUNDLE_DIR:${MBTOOLS_SERVER_APP_NAME}>/Contents/Frameworks"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:${MBTOOLS_CORE_LIB_NAME}>" "$<TARGET_BUNDLE_DIR:${MBTOOLS_SERVER_APP_NAME}>/Contents/Frameworks/lib${MBTOOLS_CORE_LIB_NAME}.${PROJECT_VERSION_MAJOR}.dylib"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:${MB_LIBRARY_NAME}>" "$<TARGET_BUNDLE_DIR:${MBTOOLS_SERVER_APP_NAME}>/Contents/Frameworks/lib${MB_LIBRARY_NAME}.${PROJECT_VERSION_MAJOR}.dylib"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_BUNDLE_DIR:${MBTOOLS_SERVER_APP_NAME}>/Contents/Resources/script/server"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${MBTOOLS_SERVER_SCRIPT_FILES} "$<TARGET_BUNDLE_DIR:${MBTOOLS_SERVER_APP_NAME}>/Contents/Resources/script/server"
+        COMMENT "Copy ModbusTools libraries and Python scripts into macOS server bundle"
+    )
+endif()
 
 target_link_libraries(${MBTOOLS_SERVER_APP_NAME} PRIVATE 
                       Qt${QT_VERSION_MAJOR}::Core

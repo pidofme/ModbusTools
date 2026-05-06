@@ -23,6 +23,8 @@
 #include "core_helpui.h"
 
 #include <QApplication>
+#include <QDir>
+#include <QFileInfo>
 #include <QSplitter>
 
 #include <QtHelp/QHelpEngine>
@@ -56,7 +58,16 @@ mbCoreHelpUi::mbCoreHelpUi(const QString &relativeCollectionFile, QWidget *paren
     setWindowTitle(QStringLiteral("Help"));
     this->resize(800, 600);
 
-    QString collectionFile = QApplication::applicationDirPath() + relativeCollectionFile;
+    const QString appDir = QApplication::applicationDirPath();
+    QString collectionFile = appDir + relativeCollectionFile;
+#ifdef Q_OS_MACOS
+    if (!QFileInfo::exists(collectionFile))
+    {
+        const QString resourceCollectionFile = QDir::cleanPath(appDir + QStringLiteral("/../Resources") + relativeCollectionFile);
+        if (QFileInfo::exists(resourceCollectionFile))
+            collectionFile = resourceCollectionFile;
+    }
+#endif
     m_helpEngine = new QHelpEngine(collectionFile, this);
 //#if (QT_VERSION >= QT_VERSION_CHECK(5, 13, 0))
 //    m_helpEngine->setUsesFilterEngine(true);

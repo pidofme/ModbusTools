@@ -337,7 +337,13 @@ QString mbServerRunScriptThread::getImportPath()
     pathList.append(dir); // tmp
 #endif // QT_DEBUG
 
-    pathList.append(QCoreApplication::applicationDirPath()+QStringLiteral("/script/server"));
+    const QString appDir = QCoreApplication::applicationDirPath();
+    pathList.append(appDir+QStringLiteral("/script/server"));
+#ifdef Q_OS_MACOS
+    const QString resourceScriptPath = QDir::cleanPath(appDir+QStringLiteral("/../Resources/script/server"));
+    if (QFileInfo::exists(resourceScriptPath))
+        pathList.append(resourceScriptPath);
+#endif
     if (m_settingImportPath.count() > 0)
         pathList.append(m_settingImportPath);
     QString res = pathList.join(";");

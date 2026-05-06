@@ -120,6 +120,77 @@
             "name": "Linux-Server-Release",
             "inherits": "Linux-Release",
             "binaryDir": "$env{HOME}/tmp/cmake/ModbusTools/Linux/Server/Release"
+        },
+        {
+            "name": "MacOS-Base",
+            "displayName": "AppleClang macOS Default",
+            "description": "Using AppleClang and Homebrew Qt5",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "/usr/bin/cc",
+                "CMAKE_CXX_COMPILER": "/usr/bin/c++",
+                "CMAKE_OSX_SYSROOT": "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+                "CMAKE_CXX_FLAGS": "-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1",
+                "CMAKE_PREFIX_PATH": "/usr/local/opt/qt@5;/opt/homebrew/opt/qt@5"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            }
+        },
+        {
+            "name": "MacOS-Debug",
+            "displayName": "macOS AppleClang Debug",
+            "inherits": "MacOS-Base",
+            "binaryDir": "$env{HOME}/tmp/cmake/ModbusTools/MacOS/Debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "MacOS-Release",
+            "displayName": "macOS AppleClang Release",
+            "inherits": "MacOS-Base",
+            "binaryDir": "$env{HOME}/tmp/cmake/ModbusTools/MacOS/Release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "MacOS-Client-Debug",
+            "inherits": "MacOS-Debug",
+            "binaryDir": "$env{HOME}/tmp/cmake/ModbusTools/MacOS/Client/Debug",
+            "cacheVariables": {
+                "MBTOOLS_CLIENT_ENABLED": "ON",
+                "MBTOOLS_SERVER_ENABLED": "OFF"
+            }
+        },
+        {
+            "name": "MacOS-Client-Release",
+            "inherits": "MacOS-Release",
+            "binaryDir": "$env{HOME}/tmp/cmake/ModbusTools/MacOS/Client/Release",
+            "cacheVariables": {
+                "MBTOOLS_CLIENT_ENABLED": "ON",
+                "MBTOOLS_SERVER_ENABLED": "OFF"
+            }
+        },
+        {
+            "name": "MacOS-Server-Debug",
+            "inherits": "MacOS-Debug",
+            "binaryDir": "$env{HOME}/tmp/cmake/ModbusTools/MacOS/Server/Debug",
+            "cacheVariables": {
+                "MBTOOLS_CLIENT_ENABLED": "OFF",
+                "MBTOOLS_SERVER_ENABLED": "ON"
+            }
+        },
+        {
+            "name": "MacOS-Server-Release",
+            "inherits": "MacOS-Release",
+            "binaryDir": "$env{HOME}/tmp/cmake/ModbusTools/MacOS/Server/Release",
+            "cacheVariables": {
+                "MBTOOLS_CLIENT_ENABLED": "OFF",
+                "MBTOOLS_SERVER_ENABLED": "ON"
+            }
         }
     ],
     "buildPresets": [
@@ -208,6 +279,38 @@
             "name": "Linux-Server-Release",
             "inherits": "Linux-Release",
             "configurePreset": "Linux-Server-Release"
+        },
+        {
+            "name": "MacOS-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "MacOS-Debug",
+            "configuration": "Debug"
+        },
+        {
+            "name": "MacOS-Release",
+            "inherits": "Build-Base",
+            "configurePreset": "MacOS-Release",
+            "configuration": "Release"
+        },
+        {
+            "name": "MacOS-Client-Debug",
+            "inherits": "MacOS-Debug",
+            "configurePreset": "MacOS-Client-Debug"
+        },
+        {
+            "name": "MacOS-Client-Release",
+            "inherits": "MacOS-Release",
+            "configurePreset": "MacOS-Client-Release"
+        },
+        {
+            "name": "MacOS-Server-Debug",
+            "inherits": "MacOS-Debug",
+            "configurePreset": "MacOS-Server-Debug"
+        },
+        {
+            "name": "MacOS-Server-Release",
+            "inherits": "MacOS-Release",
+            "configurePreset": "MacOS-Server-Release"
         }
     ]
 }

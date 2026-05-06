@@ -127,6 +127,53 @@ QStringList mbServer::findPythonExecutables()
             }
         }
     }
+#elif defined(Q_OS_MACOS)
+    // Typical locations for Python on macOS, including Homebrew on Intel and Apple Silicon
+    QStringList commonLocations =
+    {
+        "/usr/bin",
+        "/usr/local/bin",
+        "/opt/homebrew/bin",
+        "/usr/local/opt/python@3.12/bin",
+        "/opt/homebrew/opt/python@3.12/bin"
+    };
+
+    Q_FOREACH (const QString &location, commonLocations)
+    {
+        QDir dir(location);
+        if (dir.exists())
+        {
+            QFileInfoList pythonFiles = dir.entryInfoList(QStringList() << "python*", QDir::Files);
+            Q_FOREACH (const QFileInfo &pythonFile, pythonFiles)
+            {
+                if (pythonFile.isExecutable())
+                {
+                    pythonPaths.append(pythonFile.absoluteFilePath());
+                }
+            }
+        }
+    }
+
+    QDir frameworksDir("/Library/Frameworks/Python.framework/Versions");
+    if (frameworksDir.exists())
+    {
+        QFileInfoList versions = frameworksDir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
+        Q_FOREACH (const QFileInfo &version, versions)
+        {
+            QDir binDir(version.absoluteFilePath() + "/bin");
+            if (binDir.exists())
+            {
+                QFileInfoList pythonFiles = binDir.entryInfoList(QStringList() << "python*", QDir::Files);
+                Q_FOREACH (const QFileInfo &pythonFile, pythonFiles)
+                {
+                    if (pythonFile.isExecutable())
+                    {
+                        pythonPaths.append(pythonFile.absoluteFilePath());
+                    }
+                }
+            }
+        }
+    }
 #endif
 
     // Ensure no duplicates
